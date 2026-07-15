@@ -10,7 +10,8 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 
 /* HEADER */
 .hdr { background:#fff; border-bottom:3px solid #FFD700; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:99; box-shadow:0 2px 8px rgba(0,0,0,0.07); }
-.hdr h1 { font-size:15px; font-weight:900; color:#222; }
+.hdr h1 { font-size:15px; font-weight:900; color:#222; display:flex; align-items:center; gap:8px; }
+.hdr h1 img { width:22px; height:22px; object-fit:contain; flex-shrink:0; border-radius:4px; }
 .hdr p  { font-size:11px; color:#aaa; margin-top:1px; }
 .badge  { background:#FFD700; color:#333; font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; white-space:nowrap; }
 
@@ -112,7 +113,6 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 .sun-am  { color:#2a7a2a; font-weight:bold; }
 .sun-pm  { color:#2244cc; font-weight:bold; padding-left:7px; }
 .wed-lbl { color:#cc2222; font-weight:bold; }
-.fri-lbl { color:#7c3aed; font-weight:bold; }
 .bul  { color:#2244cc; margin-right:1px; }
 .naud { width:105px; flex-shrink:0; font-size:9px; font-weight:bold; color:#1a1aaa; text-align:center; }
 .ngat { font-size:9px; font-weight:bold; color:#1a1aaa; margin-left:10px; text-align:center; }
@@ -141,7 +141,7 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 <!-- HEADER -->
 <div class="hdr">
   <div>
-    <h1>&#9962; Attendant's Schedule</h1>
+    <h1><img src="https://via.placeholder.com/44x44.png?text=Logo" alt="Logo"> Attendant's Schedule</h1>
     <p>Fair rotation &mdash; no one repeats until all served</p>
   </div>
   <div class="badge" id="badge">Cycle: 1</div>
@@ -205,7 +205,6 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
     <label class="chip on-green" id="ch-sun-am"><input type="checkbox" checked onchange="toggleChip(this,'ch-sun-am','green')"><span class="dot" style="background:#2a7a2a"></span>Sun AM</label>
     <label class="chip on-blue"  id="ch-sun-pm"><input type="checkbox" checked onchange="toggleChip(this,'ch-sun-pm','blue')"><span class="dot"  style="background:#2244cc"></span>Sun PM</label>
     <label class="chip"          id="ch-wed"   ><input type="checkbox"         onchange="toggleChip(this,'ch-wed','red')">   <span class="dot"  style="background:#cc2222"></span>Wed</label>
-    <label class="chip"          id="ch-fri"   ><input type="checkbox"         onchange="toggleChip(this,'ch-fri','purple')"><span class="dot"  style="background:#7c3aed"></span>Fri</label>
   </div>
 
   <div class="err" id="err-msg"></div>
@@ -394,7 +393,6 @@ function buildServiceDays(startISO, weeks) {
   var sunAm = document.querySelector('#ch-sun-am input').checked;
   var sunPm = document.querySelector('#ch-sun-pm input').checked;
   var wedOn = document.querySelector('#ch-wed input').checked;
-  var friOn = document.querySelector('#ch-fri input').checked;
   var parts = startISO.split('-');
   var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
   while (d.getDay() !== 0) d.setDate(d.getDate() + 1);
@@ -408,8 +406,6 @@ function buildServiceDays(startISO, weeks) {
       if (sunPm) days.push({ d:new Date(cur), t:'sun-pm' });
     } else if (dow === 3 && wedOn) {
       days.push({ d:new Date(cur), t:'wed' });
-    } else if (dow === 5 && friOn) {
-      days.push({ d:new Date(cur), t:'fri' });
     }
     cur.setDate(cur.getDate() + 1);
   }
@@ -421,7 +417,6 @@ function fmtDate(d, t) {
   if (t === 'sun-am') return '<span class="sun-am">'  + base + '- am</span>';
   if (t === 'sun-pm') return '<span class="bul">&bull;</span><span class="sun-pm">' + base + '- pm</span>';
   if (t === 'wed')    return '<span class="wed-lbl">' + base + '</span>';
-  if (t === 'fri')    return '<span class="fri-lbl">' + base + '</span>';
   return base;
 }
 
@@ -497,7 +492,7 @@ function doGenerate() {
         localPmPtr = 0;
       }
     } else {
-      // Wed / Fri — use combined list
+      // Wed — use combined list
       if (wedAll.length >= 2) {
         var p3 = fairPick(wedAll, localWedPtr);
         audName    = p3.aud;
@@ -558,8 +553,8 @@ function showCycleTracker(audF, gateF, wedAll, ap, pp, wp) {
   var html = '<strong>Rotation Progress</strong><br><br>';
   html += queueStatus(audF,  ap, 'Sun AM group');
   html += queueStatus(gateF, pp, 'Sun PM group');
-  if (document.querySelector('#ch-wed input').checked || document.querySelector('#ch-fri input').checked) {
-    html += queueStatus(wedAll, wp, 'Wed/Fri group');
+  if (document.querySelector('#ch-wed input').checked) {
+    html += queueStatus(wedAll, wp, 'Wed group');
   }
   box.innerHTML = html;
   box.style.display = 'block';
