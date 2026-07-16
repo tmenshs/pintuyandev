@@ -163,6 +163,20 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 .dl-row button:active { background:#f0f0f0; }
 .dl-row button:disabled { opacity:0.45; cursor:not-allowed; }
 
+/* PASSWORD GATE */
+#gate-overlay { position:fixed; inset:0; background:#f0f0f0; z-index:999; display:flex; align-items:center; justify-content:center; padding:20px; }
+#gate-box { width:100%; max-width:340px; background:#fff; border-radius:14px; padding:26px 24px; box-shadow:0 8px 30px rgba(0,0,0,0.15); text-align:center; }
+#gate-box h2 { font-size:15px; font-weight:900; color:#222; margin-bottom:6px; }
+#gate-box p { font-size:12px; color:#999; margin-bottom:18px; line-height:1.5; }
+#gate-box input { width:100%; font-size:15px; padding:11px 12px; border:1px solid #ddd; border-radius:8px; background:#fafafa; color:#222; outline:none; font-family:Arial,sans-serif; margin-bottom:10px; -webkit-appearance:none; }
+#gate-box input:focus { border-color:#FFD700; background:#fffbea; }
+#gate-box button { width:100%; padding:13px; background:#FFD700; border:none; border-radius:8px; font-size:14px; font-weight:900; cursor:pointer; color:#333; font-family:Arial,sans-serif; }
+#gate-box button:active { background:#e6c200; }
+#gate-box button:disabled { opacity:0.5; }
+#gate-msg { font-size:12px; margin-top:10px; display:none; }
+#gate-msg.err { color:#a00; display:block; }
+body.locked > *:not(#gate-overlay) { display:none !important; }
+
 /* PRINT */
 @media print {
   @page { size:A4 portrait; margin:15mm 18mm; }
@@ -177,7 +191,18 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 }
 </style>
 </head>
-<body>
+<body class="locked">
+
+<!-- PASSWORD GATE -->
+<div id="gate-overlay">
+  <div id="gate-box">
+    <h2>Private Access</h2>
+    <p>Enter the shared password to view the schedule.</p>
+    <input type="password" id="gate-pass" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')checkGate()">
+    <button id="gate-btn" onclick="checkGate()">Unlock</button>
+    <div class="msg-line" id="gate-msg"></div>
+  </div>
+</div>
 
 <!-- HEADER -->
 <div class="hdr">
@@ -348,9 +373,56 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 // ═══════════════════════════════════════════════════
+// PASSWORD GATE — checks against the same Apps Script
+// backend used by the Bulletin (action: 'checkPassword')
+// ═══════════════════════════════════════════════════
+var GATE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKn7OGet_p0NWMTVURe0VAMTUTpDcSixI8rbEAP7j55AhCx5iJ3kKoGgn3mRinx3nHcQ/exec';
+
+function checkGate(){
+  var pass = document.getElementById('gate-pass').value;
+  var btn  = document.getElementById('gate-btn');
+  var msg  = document.getElementById('gate-msg');
+  msg.className = 'msg-line'; msg.style.display = 'none';
+
+  if (!pass) return;
+
+  btn.disabled = true;
+  var original = btn.textContent;
+  btn.textContent = 'Checking\u2026';
+
+  fetch(GATE_APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ password: pass, action: 'checkPassword' })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false;
+      btn.textContent = original;
+      if (res && res.success) {
+        sessionStorage.setItem('schedule_unlocked', '1');
+        document.body.classList.remove('locked');
+      } else {
+        msg.textContent = (res && res.error) ? res.error : 'Incorrect password.';
+        msg.className = 'msg-line err';
+        msg.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      btn.disabled = false;
+      btn.textContent = original;
+      msg.textContent = 'Could not reach the server. Check your connection.';
+      msg.className = 'msg-line err';
+      msg.style.display = 'block';
+    });
+}
+
+// If already unlocked earlier this session, skip the gate
+if (sessionStorage.getItem('schedule_unlocked') === '1') {
+  document.body.classList.remove('locked');
+}
+
+// ═══════════════════════════════════════════════════
 // DOWNLOAD — PNG / JPEG / PDF of the generated schedule
-// Captures the #a4 preview element as a canvas, then
-// exports it as an image file or embeds it in a PDF.
 // ═══════════════════════════════════════════════════
 function captureSchedule() {
   var el = document.getElementById('a4');
@@ -404,7 +476,6 @@ function downloadPDF() {
     var imgW  = pageW;
     var imgH  = (canvas.height * imgW) / canvas.width;
 
-    // If content is taller than one page, scale it down to fit instead of cropping
     if (imgH > pageH) {
       imgH = pageH;
       imgW = (canvas.width * imgH) / canvas.height;
@@ -451,24 +522,18 @@ var gateNames = [
   'John Carlo J.','Vicente M.','Virgilio G.','Abner J. Jr'
 ];
 
-// Global rotation pointer — persists across generates
-// amPtr, pmPtr, wedPtr = index of NEXT person to assign in that group
 var amPtr  = 0;
 var pmPtr  = 0;
 var wedPtr = 0;
 var cycleNum = 1;
 
-// Manually-added special/unexpected-event days
-// Each entry: { date: 'YYYY-MM-DD', aud: name, gate: name }
 var specialDays = [];
 
 var DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // ═══════════════════════════════════════════════════
-// FAIR PICK — picks 2 unique consecutive names from
-// a pool starting at ptr, wraps around if needed.
-// Returns { aud, gate, newPtr, wrapped (bool) }
+// FAIR PICK
 // ═══════════════════════════════════════════════════
 function fairPick(pool, ptr) {
   var n = pool.length;
@@ -477,7 +542,7 @@ function fairPick(pool, ptr) {
 
   var i1 = ptr % n;
   var i2 = (ptr + 1) % n;
-  var wrapped = (ptr + 1) >= n; // completed a full cycle after this pick
+  var wrapped = (ptr + 1) >= n;
   return {
     aud     : pool[i1],
     gate    : pool[i2],
@@ -487,7 +552,7 @@ function fairPick(pool, ptr) {
 }
 
 // ═══════════════════════════════════════════════════
-// NAME EDITOR MODAL (popup) — replaces the old always-open tabs
+// NAME EDITOR MODAL
 // ═══════════════════════════════════════════════════
 var modalType = 'aud';
 
@@ -512,7 +577,7 @@ function closeNamesModal(evt) {
 }
 
 // ═══════════════════════════════════════════════════
-// SPECIAL DAY MODAL (popup)
+// SPECIAL DAY MODAL
 // ═══════════════════════════════════════════════════
 function openSpecialModal() {
   populateSpecialSelects();
@@ -544,7 +609,7 @@ function updateSpecialCount() {
 }
 
 // ═══════════════════════════════════════════════════
-// RENDER NAME LIST (renders into the modal's shared list container)
+// RENDER NAME LIST
 // ═══════════════════════════════════════════════════
 function renderList(type) {
   var arr = type === 'aud' ? audNames : gateNames;
@@ -619,14 +684,14 @@ function toggleChip(cb, id, color) {
 }
 
 // ═══════════════════════════════════════════════════
-// SPECIAL DAY (unexpected event) — manual name picking
+// SPECIAL DAY (unexpected event)
 // ═══════════════════════════════════════════════════
 function getPoolByType(poolType) {
   var audF  = audNames.filter(function(n) { return n.trim(); });
   var gateF = gateNames.filter(function(n) { return n.trim(); });
   if (poolType === 'aud')  return audF;
   if (poolType === 'gate') return gateF;
-  return audF.concat(gateF); // 'both'
+  return audF.concat(gateF);
 }
 
 function populateSpecialSelects() {
@@ -736,9 +801,7 @@ function fmtDate(d, t) {
 }
 
 // ═══════════════════════════════════════════════════
-// GENERATE — FAIR ROTATION CORE
-// Each service day picks the NEXT 2 people in queue.
-// Pointer advances by 2. Wraps only after everyone served.
+// GENERATE
 // ═══════════════════════════════════════════════════
 function doGenerate() {
   var errEl = document.getElementById('err-msg');
@@ -752,7 +815,7 @@ function doGenerate() {
 
   var audF    = audNames.filter(function(n)  { return n.trim(); });
   var gateF   = gateNames.filter(function(n) { return n.trim(); });
-  var wedAll  = audF.concat(gateF); // Wednesday uses everyone
+  var wedAll  = audF.concat(gateF);
 
   if (!audF.length && !gateF.length) {
     errEl.textContent = 'Please add at least one name.';
@@ -763,7 +826,6 @@ function doGenerate() {
   var title   = document.getElementById('sched-title').value || "ATTENDANT'S SCHEDULE 1&2";
   var svcDays = buildServiceDays(startISO, weeks);
 
-  // Merge in manually-added special days, then sort everything by date
   specialDays.forEach(function(sp) {
     var parts = sp.date.split('-');
     var spDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
@@ -776,12 +838,10 @@ function doGenerate() {
     errEl.style.display = 'block'; return;
   }
 
-  // Local copies of pointers for this generation
   var localAmPtr  = amPtr;
   var localPmPtr  = pmPtr;
   var localWedPtr = wedPtr;
 
-  // Track cycle completions per group this run
   var amCycles  = 0;
   var pmCycles  = 0;
   var wedCycles = 0;
@@ -815,11 +875,9 @@ function doGenerate() {
         localPmPtr = 0;
       }
     } else if (s.t === 'special') {
-      // Manually-chosen names — bypasses rotation entirely
       audName  = s.spAud  || '';
       gateName = s.spGate || '';
     } else {
-      // Wed — use combined list
       if (wedAll.length >= 2) {
         var p3 = fairPick(wedAll, localWedPtr);
         audName    = p3.aud;
@@ -839,25 +897,20 @@ function doGenerate() {
       '</div>';
   }
 
-  // Commit pointer advances
   amPtr  = localAmPtr;
   pmPtr  = localPmPtr;
   wedPtr = localWedPtr;
 
-  // Update cycle badge
   document.getElementById('badge').textContent = 'Cycle: ' + cycleNum;
   cycleNum++;
 
-  // Render schedule
   document.getElementById('a4').innerHTML =
     '<div class="title-box"><span>' + title + '</span></div>' +
     '<div class="col-hdr"><div class="col-a">AUDITORIUM</div><div class="col-g">GATE</div></div>' +
     rows;
 
-  // Show cycle tracker
   showCycleTracker(audF, gateF, wedAll, localAmPtr, localPmPtr, localWedPtr);
 
-  // Enable downloads now that a schedule exists
   document.getElementById('dl-png').disabled  = false;
   document.getElementById('dl-jpeg').disabled = false;
   document.getElementById('dl-pdf').disabled  = false;
@@ -866,7 +919,7 @@ function doGenerate() {
 }
 
 // ═══════════════════════════════════════════════════
-// CYCLE TRACKER — shows who's next and progress
+// CYCLE TRACKER
 // ═══════════════════════════════════════════════════
 function showCycleTracker(audF, gateF, wedAll, ap, pp, wp) {
   var box = document.getElementById('cycle-box');
