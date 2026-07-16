@@ -204,7 +204,7 @@
 </header>
 
 <div class="page-intro">
-  <p class="label">Pintuyan cng update &mdash; nothing missed</p>
+  <p class="label">Fair rotation of updates &mdash; nothing missed</p>
   <div class="hdr-rule"></div>
 </div>
 
@@ -440,8 +440,8 @@ function renderFeed(posts){
     html += '<span class="post-time label">' + fmtTime(p.timestamp) + '</span>';
     html += '</div>';
     html += '<div class="post-msg">' + escapeHtml(p.message) + '</div>';
-    if (p.photo) html += '<img class="post-photo" src="' + p.photo + '" alt="">';
-    if (p.video) html += '<div class="post-video"><iframe src="https://www.youtube.com/embed/' + p.video + '" allowfullscreen></iframe></div>';
+    if (p.photo && isSafeCloudinaryUrl(p.photo)) html += '<img class="post-photo" src="' + escapeAttr(p.photo) + '" alt="">';
+    if (p.video && /^[A-Za-z0-9_-]{6,20}$/.test(p.video)) html += '<div class="post-video"><iframe src="https://www.youtube.com/embed/' + p.video + '" allowfullscreen></iframe></div>';
     html += '</div>';
   });
   feed.innerHTML = html;
@@ -451,6 +451,15 @@ function escapeHtml(s){
   var div = document.createElement('div');
   div.textContent = s;
   return div.innerHTML;
+}
+
+function escapeAttr(s){
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function isSafeCloudinaryUrl(url){
+  // Only allow real Cloudinary-hosted https URLs — blocks injected markup or arbitrary URLs
+  return /^https:\/\/res\.cloudinary\.com\/[A-Za-z0-9_\-./]+$/.test(url);
 }
 
 function loadFeed(){
