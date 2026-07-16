@@ -399,7 +399,19 @@ function uploadToCloudinary(file){
   data.append('upload_preset', CONFIG.CLOUDINARY_UPLOAD_PRESET);
   return fetch(url, { method:'POST', body:data })
     .then(function(r){ return r.json(); })
-    .then(function(j){ return j.secure_url || ''; });
+    .then(function(j){
+      if (j.error) {
+        console.error('Cloudinary error:', j.error.message);
+        alert('Cloudinary upload failed: ' + j.error.message);
+        return '';
+      }
+      return j.secure_url || '';
+    })
+    .catch(function(err){
+      console.error('Cloudinary fetch failed:', err);
+      alert('Could not reach Cloudinary — check console.');
+      return '';
+    });
 }
 
 // ── FEED ──────────────────────────────────────────
