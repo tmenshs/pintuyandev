@@ -14,6 +14,17 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 .hdr h1 img { width:22px; height:22px; object-fit:contain; flex-shrink:0; border-radius:4px; }
 .hdr p  { font-size:11px; color:#aaa; margin-top:1px; }
 .badge  { background:#FFD700; color:#333; font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; white-space:nowrap; }
+.hdr-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+/* MENU BUTTON + DROPDOWN */
+.menu-btn { background:#fafafa; border:1.5px solid #ddd; border-radius:8px; width:36px; height:36px; cursor:pointer; color:#555; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.15s ease, border-color 0.15s ease; }
+.menu-btn:active { background:#fffbea; border-color:#FFD700; }
+.menu-dropdown { position:absolute; top:calc(100% + 8px); right:16px; background:#fff; border:1px solid #e0e0e0; border-radius:10px; min-width:200px; box-shadow:0 12px 30px rgba(0,0,0,0.15); display:none; overflow:hidden; z-index:150; }
+.menu-dropdown.on { display:block; }
+.menu-item { display:flex; align-items:center; gap:10px; padding:13px 16px; font-family:Arial,sans-serif; font-size:13px; font-weight:700; color:#333; text-decoration:none; cursor:pointer; border-bottom:1px solid #f0f0f0; transition:background 0.15s ease, padding-left 0.15s ease; }
+.menu-item:last-child { border-bottom:none; }
+.menu-item:active { background:#fffbea; padding-left:20px; }
+.menu-item .dot { width:6px; height:6px; border-radius:50%; background:#FFD700; flex-shrink:0; }
 
 /* TABS */
 .tabs { display:flex; background:#fff; border-bottom:1px solid #eee; }
@@ -51,7 +62,7 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
 .chip { display:flex; align-items:center; gap:5px; background:#f0f0f0; border:2px solid #e0e0e0; border-radius:20px; padding:7px 13px; font-size:12px; font-weight:700; color:#aaa; cursor:pointer; user-select:none; transition:all 0.15s; }
 .chip input { display:none; }
-.dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.dot2 { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 .chip.on-green  { background:#e8f9e8; border-color:#2a7a2a; color:#2a7a2a; }
 .chip.on-blue   { background:#eaefff; border-color:#2244cc; color:#2244cc; }
 .chip.on-red    { background:#fff0f0; border-color:#cc2222; color:#cc2222; }
@@ -64,6 +75,27 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 .btn-sec { padding:12px; background:#fff; border:1.5px solid #ddd; border-radius:8px; font-size:13px; cursor:pointer; color:#555; font-family:Arial,sans-serif; text-align:center; }
 .btn-sec:active { background:#f0f0f0; }
 .tip { font-size:11px; color:#bbb; text-align:center; line-height:1.6; }
+
+/* SPECIAL DAY TRIGGER CARD (opens modal) */
+.sp-trigger { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; background:#faf7ff; border:1.5px solid #e4d6ff; border-radius:10px; padding:12px 14px; margin-bottom:14px; cursor:pointer; text-align:left; font-family:Arial,sans-serif; }
+.sp-trigger:active { background:#f5edff; border-color:#7c3aed; }
+.sp-trigger .sp-trigger-title { font-size:12px; font-weight:900; color:#7c3aed; }
+.sp-trigger .sp-trigger-sub { font-size:10.5px; color:#a78bd6; margin-top:2px; }
+.sp-trigger .sp-trigger-arrow { color:#c9a9f5; font-size:18px; flex-shrink:0; }
+
+/* SPECIAL DAY (unexpected event) — now lives inside a modal */
+.sp-field { margin-bottom:10px; }
+.sp-field label { display:block; font-size:10px; color:#999; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+.sp-field input, .sp-field select { width:100%; font-size:14px; padding:9px 10px; border:1px solid #ddd; border-radius:8px; background:#fff; color:#222; outline:none; font-family:Arial,sans-serif; -webkit-appearance:none; }
+.sp-field select:focus, .sp-field input:focus { border-color:#7c3aed; }
+.sp-row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.btn-sp-add { width:100%; padding:11px; background:#7c3aed; border:none; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; color:#fff; font-family:Arial,sans-serif; margin-top:2px; }
+.btn-sp-add:active { background:#6a2fd0; }
+.sp-list { margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+.sp-item { display:flex; align-items:center; justify-content:space-between; gap:8px; background:#fff; border:1px solid #e8d9ff; border-radius:8px; padding:8px 10px; font-size:11.5px; color:#555; }
+.sp-item .sp-item-txt strong { color:#7c3aed; }
+.sp-item .sp-item-del { background:none; border:none; color:#ccc; font-size:18px; cursor:pointer; flex-shrink:0; font-family:Arial,sans-serif; }
+.sp-item .sp-item-del:active { color:#c00; }
 .err { font-size:13px; color:#a00; background:#fff0f0; border:1px solid #fcc; border-radius:6px; padding:8px 12px; margin-bottom:10px; display:none; }
 
 /* NAMES SUMMARY BAR (replaces the old always-open tabs) */
@@ -90,6 +122,10 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 .modal-done button { width:100%; padding:13px; background:#FFD700; border:none; border-radius:8px; font-size:14px; font-weight:900; cursor:pointer; color:#333; font-family:Arial,sans-serif; }
 .modal-done button:active { background:#e6c200; }
 
+/* Purple variant of modal-done button, used by the Special Day modal */
+.modal-done.purple button { background:#7c3aed; color:#fff; }
+.modal-done.purple button:active { background:#6a2fd0; }
+
 /* CYCLE INFO BOX */
 .cycle-box { background:#f9f9f9; border:1px solid #e8e8e8; border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:12px; color:#555; line-height:1.7; display:none; }
 .cycle-box strong { color:#333; }
@@ -108,24 +144,29 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 .col-hdr { display:flex; margin-bottom:4px; padding-left:105px; }
 .col-a { width:105px; font-size:11px; font-weight:900; text-align:center; letter-spacing:1px; }
 .col-g { font-size:11px; font-weight:900; text-align:center; margin-left:10px; letter-spacing:1px; }
-.srow  { display:flex; align-items:baseline; min-height:18px; margin-bottom:1px; border-bottom:0.5px solid #f5f5f5; padding:1.5px 0; }
+.srow  { display:flex; align-items:flex-start; min-height:18px; margin-bottom:1px; border-bottom:0.5px solid #f5f5f5; padding:1.5px 0; }
 .dcell { width:105px; flex-shrink:0; font-size:8.5px; padding-right:3px; line-height:1.5; }
 .sun-am  { color:#2a7a2a; font-weight:bold; }
 .sun-pm  { color:#2244cc; font-weight:bold; padding-left:7px; }
 .wed-lbl { color:#cc2222; font-weight:bold; }
+.sp-lbl  { color:#7c3aed; font-weight:bold; }
 .bul  { color:#2244cc; margin-right:1px; }
-.naud { width:105px; flex-shrink:0; font-size:9px; font-weight:bold; color:#1a1aaa; text-align:center; }
-.ngat { font-size:9px; font-weight:bold; color:#1a1aaa; margin-left:10px; text-align:center; }
+.naud { width:105px; flex-shrink:0; font-size:9px; font-weight:bold; color:#1a1aaa; text-align:left; line-height:1.5; }
+.ngat { width:105px; flex-shrink:0; font-size:9px; font-weight:bold; color:#1a1aaa; margin-left:10px; text-align:left; line-height:1.5; }
 .empty-msg { color:#bbb; font-size:13px; text-align:center; padding:40px 10px; line-height:1.7; }
 
 /* PRINT FOOTER */
 #print-foot { padding:12px 16px 20px; background:#f0f0f0; }
 #print-foot button { width:100%; padding:13px; background:#fff; border:1.5px solid #ccc; border-radius:8px; font-size:14px; cursor:pointer; color:#444; font-family:Arial,sans-serif; }
+.dl-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px; }
+.dl-row button { padding:12px 6px; background:#fff; border:1.5px solid #ccc; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; color:#555; font-family:Arial,sans-serif; }
+.dl-row button:active { background:#f0f0f0; }
+.dl-row button:disabled { opacity:0.45; cursor:not-allowed; }
 
 /* PRINT */
 @media print {
   @page { size:A4 portrait; margin:15mm 18mm; }
-  .hdr,.tabs,.panel,.settings,#print-foot,.cycle-box,.names-bar,.modal-backdrop { display:none !important; }
+  .hdr,.tabs,.panel,.settings,#print-foot,.cycle-box,.names-bar,.modal-backdrop,.menu-dropdown { display:none !important; }
   body { background:#fff; padding:0; }
   #preview-wrap { padding:0 !important; background:none !important; }
   #a4 { width:100% !important; max-width:none !important; box-shadow:none !important; padding:0 !important; }
@@ -144,7 +185,15 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
     <h1><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTITYF26cRtlabq3Fnrp9MnySnSq9Dc5xDXmiizKL4QA&s=10" alt="Logo"> Attendant's Schedule</h1>
     <p>Pintuyan Co. &mdash; Fair rotation</p>
   </div>
-  <div class="badge" id="badge">Cycle: 1</div>
+  <div class="hdr-right">
+    <div class="badge" id="badge">Cycle: 1</div>
+    <button class="menu-btn" onclick="toggleMenu(event)">&#9776;</button>
+  </div>
+  <div class="menu-dropdown" id="menu-dropdown">
+    <a class="menu-item" href="#"><span class="dot"></span>Announcements</a>
+    <a class="menu-item" href="https://tmenshs.github.io/pintuyandev/#"><span class="dot"></span>Home</a>
+    <a class="menu-item" href="#"><span class="dot"></span>About</a>
+  </div>
 </div>
 
 <!-- NAMES SUMMARY BAR (tap to open editor popup) -->
@@ -183,6 +232,53 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
   </div>
 </div>
 
+<!-- SPECIAL DAY MODAL (popup, hidden until the trigger card is tapped) -->
+<div class="modal-backdrop" id="sp-modal-backdrop" onclick="closeSpecialModal(event)">
+  <div class="modal-sheet" id="sp-modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="m-title">&#10022; Special Day (unexpected event)</div>
+      <button class="modal-close" onclick="closeSpecialModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="panel-label" style="color:#a78bd6;font-weight:400;">Manually add a one-off day and pick the names yourself.</div>
+
+      <div class="sp-field">
+        <label>Date</label>
+        <input type="date" id="sp-date">
+      </div>
+
+      <div class="sp-field">
+        <label>Use names from</label>
+        <select id="sp-pool" onchange="populateSpecialSelects()">
+          <option value="aud">Sun AM Names</option>
+          <option value="gate">Sun PM Names</option>
+          <option value="both">Both (combined)</option>
+        </select>
+      </div>
+
+      <div class="sp-row2">
+        <div class="sp-field">
+          <label>Auditorium</label>
+          <select id="sp-aud"></select>
+        </div>
+        <div class="sp-field">
+          <label>Gate</label>
+          <select id="sp-gate"></select>
+        </div>
+      </div>
+
+      <button class="btn-sp-add" onclick="addSpecialDay()">&#43; Add Special Day</button>
+
+      <div class="err" id="err-msg"></div>
+
+      <div class="sp-list" id="sp-list"></div>
+    </div>
+    <div class="modal-done purple">
+      <button onclick="closeSpecialModal()">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- SETTINGS -->
 <div class="settings">
   <div class="field">
@@ -202,12 +298,20 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 
   <div class="chip-lbl">Service Days</div>
   <div class="chips">
-    <label class="chip on-green" id="ch-sun-am"><input type="checkbox" checked onchange="toggleChip(this,'ch-sun-am','green')"><span class="dot" style="background:#2a7a2a"></span>Sun AM</label>
-    <label class="chip on-blue"  id="ch-sun-pm"><input type="checkbox" checked onchange="toggleChip(this,'ch-sun-pm','blue')"><span class="dot"  style="background:#2244cc"></span>Sun PM</label>
-    <label class="chip"          id="ch-wed"   ><input type="checkbox"         onchange="toggleChip(this,'ch-wed','red')">   <span class="dot"  style="background:#cc2222"></span>Wed</label>
+    <label class="chip on-green" id="ch-sun-am"><input type="checkbox" checked onchange="toggleChip(this,'ch-sun-am','green')"><span class="dot2" style="background:#2a7a2a"></span>Sun AM</label>
+    <label class="chip on-blue"  id="ch-sun-pm"><input type="checkbox" checked onchange="toggleChip(this,'ch-sun-pm','blue')"><span class="dot2"  style="background:#2244cc"></span>Sun PM</label>
+    <label class="chip"          id="ch-wed"   ><input type="checkbox"         onchange="toggleChip(this,'ch-wed','red')">   <span class="dot2"  style="background:#cc2222"></span>Wed</label>
   </div>
 
-  <div class="err" id="err-msg"></div>
+  <!-- SPECIAL DAY TRIGGER (tap to open editor popup) -->
+  <button class="sp-trigger" onclick="openSpecialModal()">
+    <div>
+      <div class="sp-trigger-title">&#10022; Special Day (unexpected event)</div>
+      <div class="sp-trigger-sub" id="sp-count">No special days added</div>
+    </div>
+    <span class="sp-trigger-arrow">&#9998;</span>
+  </button>
+
   <button class="btn-gen" onclick="doGenerate()">&#8635; Generate Schedule</button>
   <div class="btn-pair">
     <button class="btn-sec" onclick="doReset()">&#8634; Reset to Cycle 1</button>
@@ -233,9 +337,107 @@ body { font-family: Arial, sans-serif; background: #f0f0f0; color: #222; padding
 <!-- PRINT FOOTER -->
 <div id="print-foot">
   <button onclick="window.print()">&#128438; Print / Save as PDF</button>
+  <div class="dl-row">
+    <button id="dl-png"  onclick="downloadImage('png')"  disabled>PNG</button>
+    <button id="dl-jpeg" onclick="downloadImage('jpeg')" disabled>JPEG</button>
+    <button id="dl-pdf"  onclick="downloadPDF()"          disabled>PDF</button>
+  </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
+// ═══════════════════════════════════════════════════
+// DOWNLOAD — PNG / JPEG / PDF of the generated schedule
+// Captures the #a4 preview element as a canvas, then
+// exports it as an image file or embeds it in a PDF.
+// ═══════════════════════════════════════════════════
+function captureSchedule() {
+  var el = document.getElementById('a4');
+  return html2canvas(el, { scale:3, backgroundColor:'#ffffff', useCORS:true });
+}
+
+function scheduleFilename(ext) {
+  var d = new Date();
+  var mm = String(d.getMonth() + 1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  return 'attendant-schedule-' + d.getFullYear() + '-' + mm + '-' + dd + '.' + ext;
+}
+
+function downloadImage(type) {
+  var btn = document.getElementById(type === 'png' ? 'dl-png' : 'dl-jpeg');
+  var originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = '...';
+
+  captureSchedule().then(function(canvas) {
+    var mime = type === 'png' ? 'image/png' : 'image/jpeg';
+    var quality = type === 'jpeg' ? 0.95 : undefined;
+    var dataUrl = canvas.toDataURL(mime, quality);
+
+    var a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = scheduleFilename(type === 'png' ? 'png' : 'jpg');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    btn.disabled = false; btn.textContent = originalText;
+  }).catch(function(err) {
+    console.error('Download image failed:', err);
+    alert('Could not create the image. Please try again.');
+    btn.disabled = false; btn.textContent = originalText;
+  });
+}
+
+function downloadPDF() {
+  var btn = document.getElementById('dl-pdf');
+  var originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = '...';
+
+  captureSchedule().then(function(canvas) {
+    var imgData = canvas.toDataURL('image/png');
+    var jsPDFCtor = window.jspdf.jsPDF;
+    var pdf = new jsPDFCtor({ orientation:'portrait', unit:'mm', format:'a4' });
+
+    var pageW = pdf.internal.pageSize.getWidth();
+    var pageH = pdf.internal.pageSize.getHeight();
+    var imgW  = pageW;
+    var imgH  = (canvas.height * imgW) / canvas.width;
+
+    // If content is taller than one page, scale it down to fit instead of cropping
+    if (imgH > pageH) {
+      imgH = pageH;
+      imgW = (canvas.width * imgH) / canvas.height;
+    }
+    var xOff = (pageW - imgW) / 2;
+    var yOff = 0;
+
+    pdf.addImage(imgData, 'PNG', xOff, yOff, imgW, imgH);
+    pdf.save(scheduleFilename('pdf'));
+
+    btn.disabled = false; btn.textContent = originalText;
+  }).catch(function(err) {
+    console.error('Download PDF failed:', err);
+    alert('Could not create the PDF. Please try again.');
+    btn.disabled = false; btn.textContent = originalText;
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// MENU DROPDOWN
+// ═══════════════════════════════════════════════════
+function toggleMenu(evt) {
+  evt.stopPropagation();
+  document.getElementById('menu-dropdown').classList.toggle('on');
+}
+function closeMenu() {
+  document.getElementById('menu-dropdown').classList.remove('on');
+}
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('menu-dropdown');
+  if (dd.classList.contains('on') && !dd.contains(e.target)) closeMenu();
+});
+
 // ═══════════════════════════════════════════════════
 // DATA  — edit these lists freely
 // ═══════════════════════════════════════════════════
@@ -255,6 +457,10 @@ var amPtr  = 0;
 var pmPtr  = 0;
 var wedPtr = 0;
 var cycleNum = 1;
+
+// Manually-added special/unexpected-event days
+// Each entry: { date: 'YYYY-MM-DD', aud: name, gate: name }
+var specialDays = [];
 
 var DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -302,6 +508,23 @@ function openNamesModal(type) {
 function closeNamesModal(evt) {
   document.getElementById('modal-backdrop').classList.remove('on');
   document.body.style.overflow = '';
+  populateSpecialSelects();
+}
+
+// ═══════════════════════════════════════════════════
+// SPECIAL DAY MODAL (popup)
+// ═══════════════════════════════════════════════════
+function openSpecialModal() {
+  populateSpecialSelects();
+  renderSpecialList();
+  document.getElementById('err-msg').style.display = 'none';
+  document.getElementById('sp-modal-backdrop').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSpecialModal(evt) {
+  document.getElementById('sp-modal-backdrop').classList.remove('on');
+  document.body.style.overflow = '';
 }
 
 function updateCounts() {
@@ -309,6 +532,15 @@ function updateCounts() {
   var gateN = gateNames.filter(function(n) { return n.trim(); }).length;
   document.getElementById('aud-count').textContent  = audN  + (audN  === 1 ? ' person' : ' people');
   document.getElementById('gate-count').textContent = gateN + (gateN === 1 ? ' person' : ' people');
+  if (document.getElementById('sp-pool')) populateSpecialSelects();
+  updateSpecialCount();
+}
+
+function updateSpecialCount() {
+  var el = document.getElementById('sp-count');
+  if (!el) return;
+  var n = specialDays.length;
+  el.textContent = n === 0 ? 'No special days added' : (n + (n === 1 ? ' special day added' : ' special days added'));
 }
 
 // ═══════════════════════════════════════════════════
@@ -387,6 +619,88 @@ function toggleChip(cb, id, color) {
 }
 
 // ═══════════════════════════════════════════════════
+// SPECIAL DAY (unexpected event) — manual name picking
+// ═══════════════════════════════════════════════════
+function getPoolByType(poolType) {
+  var audF  = audNames.filter(function(n) { return n.trim(); });
+  var gateF = gateNames.filter(function(n) { return n.trim(); });
+  if (poolType === 'aud')  return audF;
+  if (poolType === 'gate') return gateF;
+  return audF.concat(gateF); // 'both'
+}
+
+function populateSpecialSelects() {
+  var poolType = document.getElementById('sp-pool').value;
+  var pool = getPoolByType(poolType);
+  var audSel  = document.getElementById('sp-aud');
+  var gateSel = document.getElementById('sp-gate');
+
+  var optsHtml = '<option value="">&mdash; none &mdash;</option>';
+  pool.forEach(function(name) {
+    optsHtml += '<option value="' + escapeAttr(name) + '">' + escapeHtml(name) + '</option>';
+  });
+  audSel.innerHTML  = optsHtml;
+  gateSel.innerHTML = optsHtml;
+}
+
+function escapeHtml(s) {
+  var div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+function escapeAttr(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function addSpecialDay() {
+  var errEl = document.getElementById('err-msg');
+  errEl.style.display = 'none';
+
+  var dateVal = document.getElementById('sp-date').value;
+  var audVal  = document.getElementById('sp-aud').value;
+  var gateVal = document.getElementById('sp-gate').value;
+
+  if (!dateVal) {
+    errEl.textContent = 'Please pick a date for the special day.';
+    errEl.style.display = 'block'; return;
+  }
+  if (!audVal && !gateVal) {
+    errEl.textContent = 'Please choose at least one name (Auditorium or Gate) for the special day.';
+    errEl.style.display = 'block'; return;
+  }
+
+  specialDays.push({ date: dateVal, aud: audVal, gate: gateVal });
+  document.getElementById('sp-aud').value  = '';
+  document.getElementById('sp-gate').value = '';
+  renderSpecialList();
+  updateSpecialCount();
+}
+
+function removeSpecialDay(idx) {
+  specialDays.splice(idx, 1);
+  renderSpecialList();
+  updateSpecialCount();
+}
+
+function renderSpecialList() {
+  var el = document.getElementById('sp-list');
+  el.innerHTML = '';
+  specialDays.forEach(function(sp, idx) {
+    var parts = sp.date.split('-');
+    var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    var dateLabel = DAYS[d.getDay()] + '.' + MONTHS[d.getMonth()] + '.' + d.getDate();
+    var names = [sp.aud, sp.gate].filter(function(n) { return n; }).join(' &amp; ');
+
+    var row = document.createElement('div');
+    row.className = 'sp-item';
+    row.innerHTML =
+      '<span class="sp-item-txt"><strong>' + dateLabel + '</strong> &mdash; ' + names + '</span>' +
+      '<button class="sp-item-del" onclick="removeSpecialDay(' + idx + ')">&times;</button>';
+    el.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════════
 // SERVICE DAYS BUILDER
 // ═══════════════════════════════════════════════════
 function buildServiceDays(startISO, weeks) {
@@ -417,6 +731,7 @@ function fmtDate(d, t) {
   if (t === 'sun-am') return '<span class="sun-am">'  + base + '- am</span>';
   if (t === 'sun-pm') return '<span class="bul">&bull;</span><span class="sun-pm">' + base + '- pm</span>';
   if (t === 'wed')    return '<span class="wed-lbl">' + base + '</span>';
+  if (t === 'special') return '<span class="sp-lbl">&#10022; ' + base + '</span>';
   return base;
 }
 
@@ -448,8 +763,16 @@ function doGenerate() {
   var title   = document.getElementById('sched-title').value || "ATTENDANT'S SCHEDULE 1&2";
   var svcDays = buildServiceDays(startISO, weeks);
 
+  // Merge in manually-added special days, then sort everything by date
+  specialDays.forEach(function(sp) {
+    var parts = sp.date.split('-');
+    var spDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    svcDays.push({ d: spDate, t: 'special', spAud: sp.aud, spGate: sp.gate });
+  });
+  svcDays.sort(function(a, b) { return a.d.getTime() - b.d.getTime(); });
+
   if (!svcDays.length) {
-    errEl.textContent = 'No service days selected. Check a service day chip.';
+    errEl.textContent = 'No service days selected, and no special days added. Check a service day chip or add a special day.';
     errEl.style.display = 'block'; return;
   }
 
@@ -491,6 +814,10 @@ function doGenerate() {
         audName = gateF[0];
         localPmPtr = 0;
       }
+    } else if (s.t === 'special') {
+      // Manually-chosen names — bypasses rotation entirely
+      audName  = s.spAud  || '';
+      gateName = s.spGate || '';
     } else {
       // Wed — use combined list
       if (wedAll.length >= 2) {
@@ -529,6 +856,11 @@ function doGenerate() {
 
   // Show cycle tracker
   showCycleTracker(audF, gateF, wedAll, localAmPtr, localPmPtr, localWedPtr);
+
+  // Enable downloads now that a schedule exists
+  document.getElementById('dl-png').disabled  = false;
+  document.getElementById('dl-jpeg').disabled = false;
+  document.getElementById('dl-pdf').disabled  = false;
 
   document.getElementById('preview-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
 }
@@ -569,6 +901,9 @@ function doReset() {
   document.getElementById('cycle-box').style.display = 'none';
   document.getElementById('a4').innerHTML =
     '<div class="empty-msg">Rotation reset to Cycle 1.<br>Tap Generate to start from person #1.</div>';
+  document.getElementById('dl-png').disabled  = true;
+  document.getElementById('dl-jpeg').disabled = true;
+  document.getElementById('dl-pdf').disabled  = true;
 }
 
 // ═══════════════════════════════════════════════════
@@ -580,6 +915,10 @@ window.onload = function() {
   var mm = String(today.getMonth() + 1).padStart(2,'0');
   var dd = String(today.getDate()).padStart(2,'0');
   document.getElementById('start-date').value = today.getFullYear() + '-' + mm + '-' + dd;
+  document.getElementById('sp-date').value = today.getFullYear() + '-' + mm + '-' + dd;
+  populateSpecialSelects();
+  renderSpecialList();
+  updateSpecialCount();
 };
 </script>
 </body>
