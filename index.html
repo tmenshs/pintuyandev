@@ -117,6 +117,15 @@
   .post-photo:hover{ transform:scale(1.015); box-shadow:0 8px 24px rgba(43,38,32,0.12); }
   .post-video{ margin-top:18px; }
   .post-video iframe{ width:100%; aspect-ratio:16/9; border:1px solid rgba(184,147,90,0.5); border-radius:4px; }
+  .post-link{
+    display:inline-flex; align-items:center; gap:7px; margin-top:16px;
+    font-size:13px; color:var(--gold-deep); text-decoration:none;
+    border-bottom:1px solid rgba(184,147,90,0.5); padding-bottom:2px;
+    transition:color 0.2s ease, border-color 0.2s ease;
+    word-break:break-all;
+  }
+  .post-link:hover{ color:var(--urgent); border-color:var(--urgent); }
+  .post-link .ico{ flex-shrink:0; font-size:14px; }
 
   /* MODAL */
   .backdrop{ display:none; position:fixed; inset:0; background:rgba(43,38,32,0.35); z-index:200; }
@@ -148,6 +157,7 @@
   }
   .field input:focus, .field textarea:focus{ border-bottom-color:var(--gold-deep); }
   .field textarea{ resize:vertical; min-height:64px; font-size:15px; }
+  .field .hint{ font-size:10.5px; color:var(--muted); margin-top:6px; line-height:1.5; }
 
   .toggle-row{ display:flex; align-items:center; gap:10px; margin-bottom:20px; }
   .toggle-row input{ accent-color:var(--urgent); width:16px; height:16px; }
@@ -253,8 +263,9 @@
       </label>
 
       <div class="field">
-        <span class="label">Video link (optional &mdash; paste YouTube link)</span>
-        <input type="text" id="p-video" placeholder="https://youtu.be/...">
+        <span class="label">Link (optional)</span>
+        <input type="text" id="p-video" placeholder="Paste any link — YouTube, Vimeo, image, or website">
+        <div class="hint">Works with YouTube/Vimeo links (embeds the video), direct image links (shows the picture), or any other link (shows as a tappable link).</div>
       </div>
 
       <div class="toggle-row">
@@ -366,15 +377,59 @@ function onPhotoPick(inp){
   }
 }
 
+// ── LINK HELPERS ───────────────────────────────────
+// Only accept http/https links — blocks javascript: and other unsafe schemes.
+function isValidUrl(str){
+  try {
+    var u = new URL(str);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch (e) {
+    return false;
+  }
+}
+
 function extractYouTubeId(url){
   if (!url) return null;
-  var m = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/)([A-Za-z0-9_-]{6,})/);
+  var m = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{6,})/);
   return m ? m[1] : null;
+}
+
+function extractVimeoId(url){
+  if (!url) return null;
+  var m = url.match(/vimeo\.com\/(?:.*\/)?(\d+)/);
+  return m ? m[1] : null;
+}
+
+// Classifies any pasted link so the feed knows how to render it:
+// youtube / vimeo embed, or "media" — meaning we'll just try loading it
+// as an image, and fall back to a plain clickable link if that fails.
+// (We don't rely on the URL ending in .jpg/.png — lots of real image
+// links, like Google Photos or Facebook CDN links, don't have one.)
+function classifyLink(url){
+  if (!url || !isValidUrl(url)) return null;
+  var yid = extractYouTubeId(url);
+  if (yid) return { type: 'youtube', id: yid };
+  var vid = extractVimeoId(url);
+  if (vid) return { type: 'vimeo', id: vid };
+  return { type: 'media', url: url };
+}
+
+// Called via onerror on the trial <img>. If the link wasn't actually
+// an image (404, webpage, PDF, etc.), swap it for a normal link instead.
+function handleLinkImgError(img){
+  var url = img.getAttribute('data-fallback-url');
+  var a = document.createElement('a');
+  a.className = 'post-link';
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.innerHTML = '<span class="ico">&#128279;</span>' + escapeHtml(shortenUrl(url));
+  img.replaceWith(a);
 }
 
 function submitPost(){
   var message = document.getElementById('p-message').value.trim();
-  var videoUrl = document.getElementById('p-video').value.trim();
+  var linkUrl = document.getElementById('p-video').value.trim();
   var urgent = document.getElementById('p-urgent').checked;
   var errEl = document.getElementById('post-err');
   var okEl = document.getElementById('post-ok');
@@ -382,6 +437,11 @@ function submitPost(){
   errEl.style.display = 'none'; okEl.style.display = 'none';
 
   if (!message) { errEl.textContent = 'Please write a message.'; errEl.style.display='block'; return; }
+  if (linkUrl && !isValidUrl(linkUrl)) {
+    errEl.textContent = 'That link doesn\u2019t look right. Make sure it starts with http:// or https://';
+    errEl.style.display = 'block';
+    return;
+  }
 
   btn.disabled = true; btn.textContent = 'Publishing\u2026';
 
@@ -392,7 +452,7 @@ function submitPost(){
       password: sessionStorage.getItem('bulletin_pass') || '',
       message: message,
       photo: photoUrl,
-      video: extractYouTubeId(videoUrl) || '',
+      video: linkUrl, // full link now stored — type is detected again at render time
       urgent: urgent
     };
     return fetch(CONFIG.APPS_SCRIPT_URL, {
@@ -469,10 +529,29 @@ function renderFeed(posts){
     html += '</div>';
     html += '<div class="post-msg">' + escapeHtml(p.message) + '</div>';
     if (p.photo && isSafeCloudinaryUrl(p.photo)) html += '<img class="post-photo" src="' + escapeAttr(p.photo) + '" alt="">';
-    if (p.video && /^[A-Za-z0-9_-]{6,20}$/.test(p.video)) html += '<div class="post-video"><iframe src="https://www.youtube.com/embed/' + p.video + '" allowfullscreen></iframe></div>';
+
+    // The "link" field now supports YouTube, Vimeo, image links (with or
+    // without a file extension), or any other URL.
+    var linkInfo = classifyLink(p.video);
+    if (linkInfo) {
+      if (linkInfo.type === 'youtube') {
+        html += '<div class="post-video"><iframe src="https://www.youtube.com/embed/' + linkInfo.id + '" allowfullscreen loading="lazy"></iframe></div>';
+      } else if (linkInfo.type === 'vimeo') {
+        html += '<div class="post-video"><iframe src="https://player.vimeo.com/video/' + linkInfo.id + '" allowfullscreen loading="lazy"></iframe></div>';
+      } else if (linkInfo.type === 'media') {
+        // Try it as an image; if it isn't one, handleLinkImgError swaps it for a link.
+        html += '<img class="post-photo" src="' + escapeAttr(linkInfo.url) + '" alt="" loading="lazy" data-fallback-url="' + escapeAttr(linkInfo.url) + '" onerror="handleLinkImgError(this)">';
+      }
+    }
     html += '</div>';
   });
   feed.innerHTML = html;
+}
+
+function shortenUrl(url){
+  var display = url.replace(/^https?:\/\//i, '');
+  if (display.length > 46) display = display.slice(0, 46) + '\u2026';
+  return display;
 }
 
 function escapeHtml(s){
