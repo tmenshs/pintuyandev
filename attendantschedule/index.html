@@ -373,9 +373,9 @@ body.locked > *:not(#gate-overlay) { display:none !important; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 // ═══════════════════════════════════════════════════
-// PASSWORD GATE — uses its OWN dedicated action
-// (checkSchedulePassword) so it never depends on or
-// conflicts with the Bulletin's own password check.
+// PASSWORD GATE — checks against Apps Script using its
+// own dedicated action (checkSchedulePassword), fully
+// separate from the Bulletin's checkPassword action.
 // ═══════════════════════════════════════════════════
 var GATE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKn7OGet_p0NWMTVURe0VAMTUTpDcSixI8rbEAP7j55AhCx5iJ3kKoGgn3mRinx3nHcQ/exec';
 
@@ -395,13 +395,18 @@ function checkGate(){
     method: 'POST',
     body: JSON.stringify({ password: pass, action: 'checkSchedulePassword' })
   })
-    .then(function(r){ return r.json(); })
-    .then(function(res){
+    .then(function(r){ return r.text(); })
+    .then(function(raw){
+      var res;
+      try { res = JSON.parse(raw); } catch(e) { res = null; }
+
       btn.disabled = false;
       btn.textContent = original;
-      if (res && res.success) {
-        sessionStorage.setItem('schedule_unlocked', '1');
-        document.body.classList.remove('locked');
+
+      var isSuccess = !!(res && (res.success === true || res.success === 'true'));
+
+      if (isSuccess) {
+        unlockSchedule();
       } else {
         msg.textContent = (res && res.error) ? res.error : 'Incorrect password.';
         msg.className = 'msg-line err';
@@ -414,13 +419,20 @@ function checkGate(){
       msg.textContent = 'Could not reach the server. Check your connection.';
       msg.className = 'msg-line err';
       msg.style.display = 'block';
-      console.error('Gate fetch error:', err);
     });
+}
+
+function unlockSchedule() {
+  sessionStorage.setItem('schedule_unlocked', '1');
+  document.body.classList.remove('locked');
+  var overlay = document.getElementById('gate-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 // If already unlocked earlier this session, skip the gate
 if (sessionStorage.getItem('schedule_unlocked') === '1') {
-  document.body.classList.remove('locked');
+  unlockSchedule();
 }
 
 // ═══════════════════════════════════════════════════
