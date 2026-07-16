@@ -227,7 +227,7 @@
       <div class="field">
         <input type="password" id="gate-pass" placeholder="Password" autocomplete="off">
       </div>
-      <button class="btn-submit" onclick="checkGate()">Unlock</button>
+      <button class="btn-submit" id="gate-btn" onclick="checkGate()">Unlock</button>
       <div class="msg-line err" id="gate-err">Incorrect password.</div>
     </div>
   </div>
@@ -294,7 +294,7 @@ document.addEventListener('click', function(e){
   if (dd.classList.contains('on') && !dd.contains(e.target)) closeMenu();
 });
 
-// ── GATE (password) ──────────────────────────────
+// ── GATE (password) — verifies against Apps Script ──
 function openGate(){
   if (sessionStorage.getItem('bulletin_unlocked') === '1') { openPost(); return; }
   document.getElementById('gate-backdrop').classList.add('on');
@@ -306,11 +306,39 @@ function closeGate(){ document.getElementById('gate-backdrop').classList.remove(
 
 function checkGate(){
   var pass = document.getElementById('gate-pass').value;
+  var errEl = document.getElementById('gate-err');
+  var btn = document.getElementById('gate-btn');
+  errEl.style.display = 'none';
   if (!pass) return;
-  sessionStorage.setItem('bulletin_pass', pass);
-  sessionStorage.setItem('bulletin_unlocked', '1');
-  closeGate();
-  openPost();
+
+  btn.disabled = true;
+  var originalText = btn.textContent;
+  btn.textContent = 'Checking\u2026';
+
+  fetch(CONFIG.APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ password: pass, action: 'checkPassword' })
+  })
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      btn.disabled = false;
+      btn.textContent = originalText;
+      if (res && res.success) {
+        sessionStorage.setItem('bulletin_pass', pass);
+        sessionStorage.setItem('bulletin_unlocked', '1');
+        closeGate();
+        openPost();
+      } else {
+        errEl.textContent = (res && res.error) ? res.error : 'Incorrect password.';
+        errEl.style.display = 'block';
+      }
+    })
+    .catch(function(){
+      btn.disabled = false;
+      btn.textContent = originalText;
+      errEl.textContent = 'Could not reach the server. Check your connection.';
+      errEl.style.display = 'block';
+    });
 }
 
 // ── POST FORM ─────────────────────────────────────
