@@ -373,13 +373,14 @@ body.locked > *:not(#gate-overlay) { display:none !important; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 // ═══════════════════════════════════════════════════
-// PASSWORD GATE — checks against the same Apps Script
-// backend used by the Bulletin (action: 'checkPassword')
+// PASSWORD GATE — uses its OWN dedicated action
+// (checkSchedulePassword) so it never depends on or
+// conflicts with the Bulletin's own password check.
 // ═══════════════════════════════════════════════════
 var GATE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKn7OGet_p0NWMTVURe0VAMTUTpDcSixI8rbEAP7j55AhCx5iJ3kKoGgn3mRinx3nHcQ/exec';
 
 function checkGate(){
-  var pass = document.getElementById('gate-pass').value;
+  var pass = document.getElementById('gate-pass').value.trim();
   var btn  = document.getElementById('gate-btn');
   var msg  = document.getElementById('gate-msg');
   msg.className = 'msg-line'; msg.style.display = 'none';
@@ -392,7 +393,7 @@ function checkGate(){
 
   fetch(GATE_APPS_SCRIPT_URL, {
     method: 'POST',
-    body: JSON.stringify({ password: pass, action: 'checkPassword' })
+    body: JSON.stringify({ password: pass, action: 'checkSchedulePassword' })
   })
     .then(function(r){ return r.json(); })
     .then(function(res){
@@ -407,12 +408,13 @@ function checkGate(){
         msg.style.display = 'block';
       }
     })
-    .catch(function(){
+    .catch(function(err){
       btn.disabled = false;
       btn.textContent = original;
       msg.textContent = 'Could not reach the server. Check your connection.';
       msg.className = 'msg-line err';
       msg.style.display = 'block';
+      console.error('Gate fetch error:', err);
     });
 }
 
